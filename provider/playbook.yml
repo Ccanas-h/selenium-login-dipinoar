@@ -1,0 +1,52 @@
+---
+- name: Instalar Docker y ejecutar imagen Docker
+  hosts: docker_group
+  become: true
+  
+  tasks:
+    - name: Actualizar cache de paquetes apt
+      apt:
+        update_cache: yes
+        
+    - name: Instalar paquetes requeridos para Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+        
+    - name: Agregar clave GPG del repositorio Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+        
+    - name: Agregar repositorio Docker
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_lsb.codename }} stable
+        state: present
+        
+    - name: Actualizar cache de paquetes apt (nuevamente)
+      apt:
+        update_cache: yes
+        
+    - name: Instalar Docker
+      apt:
+        name: docker-ce
+        state: present
+        
+    - name: Agregar usuario al grupo Docker
+      user:
+        name: camila
+        groups: docker
+        append: yes
+        
+    - name: Descargar imagen Docker
+      shell: docker pull dipinoar/imagen4
+      
+    - name: Ejecutar contenedor Docker en el puerto 8000
+      shell: docker run -d -p 8000:8000 dipinoar/imagen4
+
+ 
